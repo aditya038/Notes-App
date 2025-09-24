@@ -20,6 +20,9 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Behind Render's proxy so secure cookies work when COOKIE_SECURE=true
+app.set('trust proxy', 1);
+
 // CORS: Allow frontend origin from env or localhost:5173
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 app.use(
@@ -43,7 +46,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      sameSite: 'lax',
+      // Allow configuring SameSite via env. Use 'none' for cross-site (Netlify -> Render)
+      sameSite: (process.env.COOKIE_SAMESITE || 'lax'),
       secure: process.env.COOKIE_SECURE === 'true',
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
